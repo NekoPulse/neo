@@ -2,13 +2,13 @@
 // IMPORTANTE: Reemplaza estos valores con los de tu proyecto de Supabase
 
 const SUPABASE_CONFIG = {
-    url: 'https://tu-proyecto.supabase.co',
-    anonKey: 'tu-clave-anonima-de-supabase',
-    bucketName: 'uploads'
+    url: 'https://xgptcribksljbincffia.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncHRjcmlia3NsamJpbmNmZmlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2MjMzOTYsImV4cCI6MjA3MjE5OTM5Nn0.5JKb4REp6KUycVLWqM_02jyC7NHM3inS6U3VllL1UnM',
+    bucketName: 'uguu'
 };
 
 // Función para inicializar Supabase
-function initSupabase() {
+function initSupabase( ) {
     if (typeof supabase === 'undefined') {
         console.error('Supabase library not loaded. Please include the Supabase CDN script.');
         return null;
@@ -86,4 +86,3 @@ async function checkBucketExists() {
 window.SUPABASE_CONFIG = SUPABASE_CONFIG;
 window.uploadToSupabase = uploadToSupabase;
 window.checkBucketExists = checkBucketExists;
-
