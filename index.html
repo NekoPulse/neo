@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uguu ~ Subida de archivos</title>
+    <meta name="description" content="Uguu es un servicio gratuito y simple de alojamiento de archivos. Comparte tus fotos, documentos, música, videos y más con otros en línea sin anuncios, registro de cuenta o seguimiento.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+</head>
+<body class="js">
+    <div class="grill-wrapper" id="grill">
+        <div class="container">
+            <div class="jumbotron">
+                <h1>Uguu~</h1>
+                <p class="lead">Tamaño máximo de subida es 50 MB y los archivos se guardan permanentemente.</p>
+                
+                <form id="upload-form" enctype="multipart/form-data" method="post" class="js">
+                    <div class="upload-area">
+                        <button id="upload-btn" class="btn" type="button">Arrastra o pega archivo(s)</button>
+                        <input type="file" id="upload-input" name="files[]" multiple accept="image/*,video/*" data-max-size="50MB">
+                    </div>
+                </form>
+                
+                <div id="upload-progress" class="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <p id="progress-text">Subiendo...</p>
+                </div>
+                
+                <ul id="upload-filelist" class="file-list"></ul>
+            </div>
+            
+            <div class="alert alert-info">
+                <strong>Uguu es gratuito, pero nuestros costos de hosting no lo son</strong> — las donaciones son lo que mantienen a Uguu vivo, libre de anuncios y rápido.
+                <span class="donate-btns">
+                    <a class="donate-btn donate-bitcoin" href="bitcoin:bc1qhpy0ygu2vk52hkjtypf9wglgy9utj3th9d0c8s?label=Uguu&message=Hosting%20Costs" target="_blank">
+                        <span class="icon icon-bitcoin"></span>
+                        Bitcoin
+                    </a>
+                    <a class="donate-btn donate-ethereum" href="ethereum:0xeB5900c5E07CB409c308A9c5f250e818Ba0Cb4c7" target="_blank">
+                        <span class="icon icon-ethereum"></span>
+                        Ethereum
+                    </a>
+                    <a class="donate-btn donate-paypal" href="https://www.paypal.com/donate/?hosted_button_id=W65DY3M33ZWVE" target="_blank">
+                        <span class="icon icon-paypal"></span>
+                        PayPal
+                    </a>
+                    <a class="donate-btn donate-kofi" href="https://ko-fi.com/nekunekus" target="_blank">
+                        <span class="icon icon-kofi"></span>
+                        Ko-Fi
+                    </a>
+                </span>
+            </div>
+            
+            <nav class="navigation">
+                <ul>
+                    <li><a href="/">Uguu</a></li>
+                    <li><a href="#api">API</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="https://status.pomf.se" target="_blank">Estado</a></li>
+                    <li><a href="https://github.com/nokonoko/uguu" target="_blank">Github</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
