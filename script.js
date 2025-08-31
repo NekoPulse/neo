@@ -28,16 +28,16 @@ async function checkSupabaseConnection() {
                 console.log('Supabase conectado correctamente');
                 showMessage('Conectado a Supabase Storage', 'success');
             } else {
-                console.log('Bucket no encontrado, usando modo simulación');
-                showMessage('Modo simulación activado (configura Supabase para subidas reales)', 'info');
+                console.log('Bucket no encontrado o inaccesible, usando modo simulación');
+                showMessage('Modo simulación activado (verifica tu bucket y políticas de Supabase)', 'warning');
             }
         } else {
-            console.log('Supabase no configurado, usando modo simulación');
-            showMessage('Modo simulación activado (configura Supabase para subidas reales)', 'info');
+            console.log('Supabase no configurado o librería no cargada, usando modo simulación');
+            showMessage('Modo simulación activado (asegúrate de que supabase-config.js y la librería de Supabase estén cargados)', 'warning');
         }
     } catch (error) {
         console.error('Error verificando Supabase:', error);
-        showMessage('Modo simulación activado (error de conexión)', 'warning');
+        showMessage(`Modo simulación activado (error de conexión: ${error.message}). Revisa la consola.`, 'error');
     }
 }
 
@@ -285,4 +285,3 @@ const additionalStyles = `
 const styleSheet = document.createElement('style');
 styleSheet.textContent = additionalStyles;
 document.head.appendChild(styleSheet);
-
