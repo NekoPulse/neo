@@ -1,62 +1,38 @@
 // Elementos del DOM
-const uploadArea = document.querySelector('.upload-area');
-const uploadInput = document.getElementById('upload-input');
-const uploadBtn = document.getElementById('upload-btn');
-const uploadProgress = document.getElementById('upload-progress');
-const progressFill = document.getElementById('progress-fill');
-const progressText = document.getElementById('progress-text');
-const fileList = document.getElementById('upload-filelist');
+const uploadArea = document.querySelector(".upload-area");
+const uploadInput = document.getElementById("upload-input");
+const uploadBtn = document.getElementById("upload-btn");
+const uploadProgress = document.getElementById("upload-progress");
+const progressFill = document.getElementById("progress-fill");
+const progressText = document.getElementById("progress-text");
+const fileList = document.getElementById("upload-filelist");
 
 // Límite de tamaño de archivo (50MB)
 const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
-// Variable para controlar si usar Supabase real o simulación
-let useRealSupabase = false;
-
 // Inicialización
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", function () {
     initializeEventListeners();
-    checkSupabaseConnection();
+    // No necesitamos checkSupabaseConnection para Catbox
+    showMessage("Usando Catbox.moe para subidas de archivos.", "info");
 });
-
-async function checkSupabaseConnection() {
-    try {
-        if (typeof window.checkBucketExists === 'function') {
-            const bucketExists = await window.checkBucketExists();
-            if (bucketExists) {
-                useRealSupabase = true;
-                console.log('Supabase conectado correctamente');
-                showMessage('Conectado a Supabase Storage', 'success');
-            } else {
-                console.log('Bucket no encontrado o inaccesible, usando modo simulación');
-                showMessage('Modo simulación activado (verifica tu bucket y políticas de Supabase)', 'warning');
-            }
-        } else {
-            console.log('Supabase no configurado o librería no cargada, usando modo simulación');
-            showMessage('Modo simulación activado (asegúrate de que supabase-config.js y la librería de Supabase estén cargados)', 'warning');
-        }
-    } catch (error) {
-        console.error('Error verificando Supabase:', error);
-        showMessage(`Modo simulación activado (error de conexión: ${error.message}). Revisa la consola.`, 'error');
-    }
-}
 
 function initializeEventListeners() {
     // Click en el área de subida
-    uploadArea.addEventListener('click', () => {
+    uploadArea.addEventListener("click", () => {
         uploadInput.click();
     });
 
     // Cambio en el input de archivos
-    uploadInput.addEventListener('change', handleFileSelect);
+    uploadInput.addEventListener("change", handleFileSelect);
 
     // Eventos de drag and drop
-    uploadArea.addEventListener('dragover', handleDragOver);
-    uploadArea.addEventListener('dragleave', handleDragLeave);
-    uploadArea.addEventListener('drop', handleDrop);
+    uploadArea.addEventListener("dragover", handleDragOver);
+    uploadArea.addEventListener("dragleave", handleDragLeave);
+    uploadArea.addEventListener("drop", handleDrop);
 
     // Prevenir comportamiento por defecto del navegador
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
         uploadArea.addEventListener(eventName, preventDefaults, false);
         document.body.addEventListener(eventName, preventDefaults, false);
     });
@@ -68,15 +44,15 @@ function preventDefaults(e) {
 }
 
 function handleDragOver(e) {
-    uploadArea.classList.add('dragover');
+    uploadArea.classList.add("dragover");
 }
 
 function handleDragLeave(e) {
-    uploadArea.classList.remove('dragover');
+    uploadArea.classList.remove("dragover");
 }
 
 function handleDrop(e) {
-    uploadArea.classList.remove('dragover');
+    uploadArea.classList.remove("dragover");
     const files = e.dataTransfer.files;
     handleFiles(files);
 }
@@ -87,7 +63,7 @@ function handleFileSelect(e) {
 }
 
 function handleFiles(files) {
-    [...files].forEach(file => {
+    [...files].forEach((file) => {
         if (validateFile(file)) {
             uploadFile(file);
         }
@@ -102,11 +78,13 @@ function validateFile(file) {
     }
 
     // Verificar tipo de archivo (imágenes y videos)
-    const allowedTypes = ['image/', 'video/'];
-    const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
-    
+    const allowedTypes = ["image/", "video/"];
+    const isAllowed = allowedTypes.some((type) => file.type.startsWith(type));
+
     if (!isAllowed) {
-        showError(`El archivo "${file.name}" no es un tipo de archivo permitido (solo imágenes y videos)`);
+        showError(
+            `El archivo "${file.name}" no es un tipo de archivo permitido (solo imágenes y videos)`
+        );
         return false;
     }
 
@@ -115,63 +93,40 @@ function validateFile(file) {
 
 async function uploadFile(file) {
     try {
-        // Mostrar progreso
         showProgress();
-        
-        let result;
-        
-        if (useRealSupabase && typeof window.uploadToSupabase === 'function') {
-            // Usar Supabase real
-            result = await window.uploadToSupabase(file, updateProgress);
-        } else {
-            // Usar simulación
-            result = await simulateUpload(file);
+
+        const formData = new FormData();
+        formData.append("reqtype", "fileupload");
+        formData.append("fileToUpload", file);
+
+        const response = await fetch("https://catbox.moe/user/api.php", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error al subir a Catbox: ${response.statusText}`);
         }
-        
-        // Mostrar resultado
-        addFileToList(file, result.url);
-        hideProgress();
-        
+
+        const url = await response.text();
+
+        if (url.startsWith("https://")) {
+            addFileToList(file, url);
+            hideProgress();
+        } else {
+            throw new Error(`Respuesta inesperada de Catbox: ${url}`);
+        }
     } catch (error) {
-        console.error('Error al subir archivo:', error);
+        console.error("Error al subir archivo:", error);
         showError(`Error al subir "${file.name}": ${error.message}`);
         hideProgress();
     }
 }
 
-// Función temporal para simular la subida
-async function simulateUpload(file) {
-    return new Promise((resolve) => {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 30;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                
-                // Generar URL simulada
-                const timestamp = Date.now();
-                const randomString = Math.random().toString(36).substring(2, 15);
-                const extension = file.name.split('.').pop();
-                const fileName = `${timestamp}_${randomString}.${extension}`;
-                const simulatedUrl = `https://demo.uguu.se/uploads/${fileName}`;
-                
-                resolve({
-                    fileName: fileName,
-                    url: simulatedUrl,
-                    size: file.size,
-                    type: file.type
-                });
-            }
-            updateProgress(progress);
-        }, 200);
-    });
-}
-
 function showProgress() {
-    uploadProgress.style.display = 'block';
-    progressFill.style.width = '0%';
-    progressText.textContent = 'Subiendo...';
+    uploadProgress.style.display = "block";
+    progressFill.style.width = "0%";
+    progressText.textContent = "Subiendo...";
 }
 
 function updateProgress(percentage) {
@@ -181,16 +136,16 @@ function updateProgress(percentage) {
 
 function hideProgress() {
     setTimeout(() => {
-        uploadProgress.style.display = 'none';
+        uploadProgress.style.display = "none";
     }, 1000);
 }
 
 function addFileToList(file, url) {
-    const fileItem = document.createElement('li');
-    fileItem.className = 'file-item';
-    
+    const fileItem = document.createElement("li");
+    fileItem.className = "file-item";
+
     const fileSize = formatFileSize(file.size);
-    
+
     fileItem.innerHTML = `
         <div class="file-info">
             <div class="file-name">${file.name}</div>
@@ -198,42 +153,42 @@ function addFileToList(file, url) {
         </div>
         <a href="${url}" target="_blank" class="file-url">Ver archivo</a>
     `;
-    
+
     fileList.appendChild(fileItem);
-    
+
     // Animar la entrada
     setTimeout(() => {
-        fileItem.style.opacity = '1';
-        fileItem.style.transform = 'translateY(0)';
+        fileItem.style.opacity = "1";
+        fileItem.style.transform = "translateY(0)";
     }, 100);
 }
 
 function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    
+    if (bytes === 0) return "0 Bytes";
+
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
 function showError(message) {
-    showMessage(message, 'error');
+    showMessage(message, "error");
 }
 
-function showMessage(message, type = 'info') {
+function showMessage(message, type = "info") {
     // Crear elemento de mensaje
-    const messageDiv = document.createElement('div');
+    const messageDiv = document.createElement("div");
     messageDiv.className = `message message-${type}`;
-    
+
     const colors = {
-        error: '#ff4757',
-        success: '#2ed573',
-        warning: '#ffa502',
-        info: '#3742fa'
+        error: "#ff4757",
+        success: "#2ed573",
+        warning: "#ffa502",
+        info: "#3742fa",
     };
-    
+
     messageDiv.style.cssText = `
         background: ${colors[type] || colors.info};
         color: white;
@@ -246,12 +201,12 @@ function showMessage(message, type = 'info') {
         z-index: 1000;
     `;
     messageDiv.textContent = message;
-    
+
     // Añadir al DOM
     uploadArea.parentNode.insertBefore(messageDiv, uploadArea.nextSibling);
-    
+
     // Remover después de 5 segundos (menos tiempo para mensajes de éxito)
-    const timeout = type === 'success' ? 3000 : 5000;
+    const timeout = type === "success" ? 3000 : 5000;
     setTimeout(() => {
         messageDiv.remove();
     }, timeout);
@@ -282,6 +237,6 @@ const additionalStyles = `
 `;
 
 // Añadir estilos adicionales
-const styleSheet = document.createElement('style');
+const styleSheet = document.createElement("style");
 styleSheet.textContent = additionalStyles;
 document.head.appendChild(styleSheet);
